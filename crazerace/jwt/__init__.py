@@ -17,7 +17,7 @@ class TokenBody:
 
 
 def create_token(
-    sub: int,
+    sub: str,
     role: str,
     secret: str,
     expiry: int = DEFAULT_EXPIRY,

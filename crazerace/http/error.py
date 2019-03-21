@@ -7,7 +7,7 @@ from typing import Dict, Any
 from flask import request
 
 # Internal modules
-from .http import status
+from crazerace.http import status
 
 
 class RequestError(Exception):

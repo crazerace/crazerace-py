@@ -7,7 +7,8 @@ from flask import request
 
 # Internal modules
 from crazerace import jwt
-from .error import UnauthorizedError, BadRequestError, ForbiddenError
+from crazerace.http import get_header
+from crazerace.http.error import UnauthorizedError, BadRequestError, ForbiddenError
 
 
 def secured(secret: str, roles: List[str] = []) -> Callable:
@@ -33,7 +34,5 @@ def _authorize(secret: str, roles: List[str]) -> jwt.TokenBody:
 
 
 def _get_token_header() -> str:
-    auth_header: Optional[str] = request.headers.get("Authorization")
-    if not auth_header:
-        raise BadRequestError(message="Missing Authorization header")
+    auth_header = get_header("Authorization")
     return auth_header.replace("Bearer ", "")

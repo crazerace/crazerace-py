@@ -8,7 +8,7 @@ from typing import Any, Callable
 from flask import request
 
 # Internal modules
-from .error import InternalServerError
+from crazerace.http.error import InternalServerError
 
 
 _log = logging.getLogger("crazerace.http.instrumentation")
