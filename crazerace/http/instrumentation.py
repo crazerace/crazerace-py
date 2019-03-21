@@ -36,14 +36,13 @@ def get_request_id(fail_if_missing: bool = True) -> str:
 
 
 def trace(namespace: str) -> Callable:
-    def trace_with_namespce(f: Callable) -> Callable:
+    def trace_with_namespace(f: Callable) -> Callable:
         @wraps(f)
         def decorated(*args, **kwargs) -> Any:
             req_id = get_request_id(fail_if_missing=False)
-            name: str = f"{namespace}.{f.__qualname__}]" if namespace else f.__qualname__
-            _log.info(f"function=[{name}] requestId=[{req_id}]")
+            _log.info(f"function=[{f.__qualname__}] requestId=[{req_id}]")
             return f(*args, **kwargs)
 
         return decorated
 
-    return trace_with_namespce
+    return trace_with_namespace

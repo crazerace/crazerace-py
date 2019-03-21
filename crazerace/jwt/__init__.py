@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 # 3rd party modules
 import jwt
 
+# Internal modules
+from crazerace.http.error import BadRequestError, UnauthorizedError
+
 
 DEFAULT_EXPIRY: int = 24 * 3600
 DEFAULT_ALGORITHM: str = "HS256"
@@ -38,10 +41,10 @@ def create_token(
 
 def decode(token: str, secret: str, algorithm: str = DEFAULT_ALGORITHM) -> TokenBody:
     try:
-        token = jwt.decode(encoded_token, secret, algorithms=[algorithm])
-        return TokenBody(sub=token["sub"], role=token["role"])
+        token = jwt.decode(token, secret, algorithms=[algorithm])
+        return TokenBody(subject=token["sub"], role=token["role"])
     except KeyError:
         raise BadRequestError()
-    except PyJWTError as e:
+    except jwt.PyJWTError as e:
         raise UnauthorizedError()
 
