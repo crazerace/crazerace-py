@@ -46,7 +46,7 @@ def get_header(name: str, default: Optional[str] = None) -> str:
     :return: Header value.
     """
     header_value = request.headers.get(name, default)
-    if not auth_header:
+    if not header_value:
         raise BadRequestError(message=f"Missing {name} header")
     return header_value
 

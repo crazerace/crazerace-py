@@ -28,7 +28,7 @@ def secured(secret: str, roles: List[str] = []) -> Callable:
 def _authorize(secret: str, roles: List[str]) -> jwt.TokenBody:
     encoded_token = _get_token_header()
     token = jwt.decode(encoded_token, secret)
-    if request.role not in roles or not roles:
+    if token.role not in roles and roles:
         raise ForbiddenError()
     return token
 
