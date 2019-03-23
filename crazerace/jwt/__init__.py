@@ -26,9 +26,9 @@ def create_token(
     expiry: int = DEFAULT_EXPIRY,
     algorithm: str = DEFAULT_ALGORITHM,
 ) -> str:
-    issued_at = datetime.utcnow().strftime("%s")
-    not_before = (datetime.utcnow() - timedelta(seconds=60)).strftime("%s")
-    expires_at = (datetime.utcnow() + timedelta(seconds=expiry)).strftime("%s")
+    issued_at = datetime.utcnow().timestamp()
+    not_before = (datetime.utcnow() - timedelta(seconds=60)).timestamp()
+    expires_at = (datetime.utcnow() + timedelta(seconds=expiry)).timestamp()
     payload = {
         "sub": sub,
         "role": role,
