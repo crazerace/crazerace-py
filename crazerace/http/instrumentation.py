@@ -1,5 +1,4 @@
 # Standard library
-import logging
 from functools import wraps
 from uuid import uuid4
 from typing import Any, Callable
@@ -8,10 +7,8 @@ from typing import Any, Callable
 from flask import request
 
 # Internal modules
+from crazerace import _log
 from crazerace.http.error import InternalServerError
-
-
-_log = logging.getLogger("crazerace.http.instrumentation")
 
 
 REQUEST_ID_HEADER: str = "X-Request-ID"
@@ -35,12 +32,13 @@ def get_request_id(fail_if_missing: bool = True) -> str:
         return ""
 
 
-def trace(namespace: str) -> Callable:
+def trace(namespace: str = "") -> Callable:
     def trace_with_namespace(f: Callable) -> Callable:
         @wraps(f)
         def decorated(*args, **kwargs) -> Any:
+            name = f"{namespace}.{f.__qualname__}" if namespace else f.__qualname__
             req_id = get_request_id(fail_if_missing=False)
-            _log.info(f"function=[{f.__qualname__}] requestId=[{req_id}]")
+            _log.info(f"function=[{name}] requestId=[{req_id}]")
             return f(*args, **kwargs)
 
         return decorated
