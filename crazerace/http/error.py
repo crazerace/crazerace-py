@@ -79,6 +79,16 @@ class NotFoundError(RequestError):
         return status.HTTP_404_NOT_FOUND
 
 
+class MethodNotAllowedError(RequestError):
+    """Error for when a resource is called with an incorrect method."""
+
+    def __init__(self, message: str = "Method not allowed"):
+        super().__init__(message)
+
+    def status(self) -> int:
+        return status.HTTP_405_METHOD_NOT_ALLOWED
+
+
 class ConflictError(RequestError):
     """Error for when a resource conflicts with another."""
 

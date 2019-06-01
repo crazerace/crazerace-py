@@ -1,7 +1,7 @@
 # Standard library
 from functools import wraps
 from uuid import uuid4
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 # 3rd party modules.
 from flask import request
