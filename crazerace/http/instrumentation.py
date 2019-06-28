@@ -4,16 +4,18 @@ import sys
 from datetime import datetime
 from functools import wraps
 from uuid import uuid4
+from platform import python_version
 from typing import Any, Callable, Set, Optional
 
 # 3rd party modules.
 import flask
 import prometheus_client
 from flask import request
-from prometheus_client import Counter, Histogram, multiprocess, CollectorRegistry
+from prometheus_client import Counter, Histogram, Info, multiprocess, CollectorRegistry
 
 # Internal modules
 from crazerace import _log
+from crazerace.http import status
 from crazerace.http.error import InternalServerError
 
 
@@ -24,8 +26,15 @@ _IGNORED_METRIC_ROUTES: Set[str] = {"/health", "/metrics"}
 metrics_registry = CollectorRegistry()
 multiprocess.MultiProcessCollector(metrics_registry)
 
+APP_INFO = Info("app_info", "Application information", registry=metrics_registry)
 REQUESTS_TOTAL = Counter(
     "http_requests_total",
+    "Service Request Count",
+    ["method", "endpoint", "http_status"],
+    registry=metrics_registry,
+)
+REQUESTS_500_TOTAL = Counter(
+    "http_requests_500_total",
     "Service Request Count",
     ["method", "endpoint", "http_status"],
     registry=metrics_registry,
@@ -94,9 +103,12 @@ def stop_timer(response: flask.Response) -> flask.Response:
 
 def record_request_data(response: flask.Response):
     if request.path not in _IGNORED_METRIC_ROUTES:
-        REQUESTS_TOTAL.labels(
-            request.method, _parse_endpoint(), response.status_code
-        ).inc()
+        endpoint = _parse_endpoint()
+        REQUESTS_TOTAL.labels(request.method, endpoint, response.status_code).inc()
+        if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+            REQUESTS_500_TOTAL.labels(
+                request.method, endpoint, response.status_code
+            ).inc()
     return response
 
 
@@ -111,7 +123,10 @@ def _parse_endpoint() -> str:
     return str(rule) if rule is not None else "NOT_FOUND"
 
 
-def setup_instrumentation(app: flask.Flask) -> None:
+def setup_instrumentation(app: flask.Flask, name: str, version: str) -> None:
+    APP_INFO.info(
+        {"name": name, "version": version, "platform": f"Python {python_version()}"}
+    )
     app.before_request(start_timer)
     app.before_request(add_request_id)
     # The order here matters since we want stop_timer
