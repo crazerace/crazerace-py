@@ -35,7 +35,7 @@ REQUESTS_TOTAL = Counter(
 )
 REQUESTS_500_TOTAL = Counter(
     "http_requests_500_total",
-    "Service Request Count",
+    "Service Error Count",
     ["method", "endpoint", "http_status"],
     registry=metrics_registry,
 )
