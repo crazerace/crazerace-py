@@ -21,7 +21,7 @@ from crazerace.http.error import InternalServerError
 
 REQUEST_ID_HEADER: str = "X-Request-ID"
 CONTENT_TYPE_LATEST = str("text/plain; version=0.0.4; charset=utf-8")
-_IGNORED_METRIC_ROUTES: Set[str] = {"/health", "/metrics"}
+_IGNORED_METRIC_ROUTES: Set[str] = {"/metrics"}
 
 metrics_registry = CollectorRegistry()
 multiprocess.MultiProcessCollector(metrics_registry)
@@ -30,12 +30,6 @@ APP_INFO = Info("app_info", "Application information", registry=metrics_registry
 REQUESTS_TOTAL = Counter(
     "http_requests_total",
     "Service Request Count",
-    ["method", "endpoint", "http_status"],
-    registry=metrics_registry,
-)
-REQUESTS_500_TOTAL = Counter(
-    "http_requests_500_total",
-    "Service Error Count",
     ["method", "endpoint", "http_status"],
     registry=metrics_registry,
 )
@@ -101,14 +95,10 @@ def stop_timer(response: flask.Response) -> flask.Response:
     return response
 
 
-def record_request_data(response: flask.Response):
+def record_request_data(response: flask.Response) -> flask.Response:
     if request.path not in _IGNORED_METRIC_ROUTES:
         endpoint = _parse_endpoint()
         REQUESTS_TOTAL.labels(request.method, endpoint, response.status_code).inc()
-        if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
-            REQUESTS_500_TOTAL.labels(
-                request.method, endpoint, response.status_code
-            ).inc()
     return response
 
 
