@@ -32,7 +32,7 @@ def create_token(
     payload = {
         "sub": sub,
         "role": role,
-        "iss": int(issued_at),
+        "iat": int(issued_at),
         "nbf": int(not_before),
         "exp": int(expires_at),
     }
@@ -41,8 +41,8 @@ def create_token(
 
 def decode(token: str, secret: str, algorithm: str = DEFAULT_ALGORITHM) -> TokenBody:
     try:
-        token = jwt.decode(token, secret, algorithms=[algorithm])
-        return TokenBody(subject=token["sub"], role=token["role"])
+        decoded_token = jwt.decode(token, secret, algorithms=[algorithm])
+        return TokenBody(subject=decoded_token["sub"], role=decoded_token["role"])
     except KeyError:
         raise BadRequestError()
     except jwt.PyJWTError as e:

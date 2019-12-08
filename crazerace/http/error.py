@@ -116,6 +116,16 @@ class InternalServerError(RequestError):
         super().__init__(message)
 
 
+class BadGatewayError(RequestError):
+    """Error for whan an unexpected error happened in a downstream dependency"""
+
+    def __init__(self, message: str = "Bad gateway"):
+        super().__init__(message)
+
+    def status(self) -> int:
+        return status.HTTP_502_BAD_GATEWAY
+
+
 class ServiceUnavilableError(RequestError):
     """Error for when an the service is a state where it ould not be able to serve request."""
 

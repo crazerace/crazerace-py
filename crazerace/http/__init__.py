@@ -1,4 +1,5 @@
 # Standard library
+from uuid import uuid4
 from typing import Any, Dict, Optional
 
 # 3rd party modules
@@ -51,9 +52,7 @@ def get_header(name: str, default: Optional[str] = None) -> str:
     return header_value
 
 
-def create_response(
-    result: Dict[str, Any], status: int = HTTP_200_OK
-) -> flask.Response:
+def create_response(result: Dict[str, Any], status: int = HTTP_200_OK) -> flask.Response:
     """Returns a response indicating that an index update was triggered.
 
     :return: flask.Response.
@@ -68,3 +67,7 @@ def create_ok_response() -> flask.Response:
     """
     ok_body: Dict[str, str] = {"status": "OK"}
     return make_response(jsonify(ok_body), HTTP_200_OK)
+
+
+def new_id() -> str:
+    return str(uuid4()).lower()

@@ -8,6 +8,10 @@ def info(message: str) -> None:
     log("info", message)
 
 
+def warning(message: str) -> None:
+    log("warning", message)
+
+
 def log(type: str, message: str, *args, **kwargs) -> None:
     """Log into the internal werkzeug logger."""
     global _logger

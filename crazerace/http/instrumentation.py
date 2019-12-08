@@ -15,7 +15,7 @@ from prometheus_client import Counter, Histogram, Info, multiprocess, CollectorR
 
 # Internal modules
 from crazerace import _log
-from crazerace.http import status
+from crazerace.http import status, new_id
 from crazerace.http.error import InternalServerError
 
 
@@ -40,11 +40,24 @@ REQUEST_LATENCY = Histogram(
     registry=metrics_registry,
 )
 
+RPCS_TOTAL = Counter(
+    "rpc_requests_total",
+    "Remote procedure call count",
+    ["method", "endpoint", "http_status"],
+    registry=metrics_registry,
+)
+RPC_LATENCY = Histogram(
+    "rpc_request_latency_ms",
+    "Remote procedure call latency in milliseconds",
+    ["method", "endpoint", "http_status"],
+    registry=metrics_registry,
+)
+
 
 def add_request_id() -> None:
     """Adds a request id to an incomming request."""
     incomming_id: Optional[str] = request.headers.get(REQUEST_ID_HEADER)
-    request.id = incomming_id or str(uuid4()).lower()
+    request.id = incomming_id or new_id()
     _log.info(
         f"Incomming request {request.method} {request.path} requestId=[{request.id}]"
     )
@@ -61,13 +74,13 @@ def add_request_id_to_response(response: flask.Response) -> flask.Response:
     return response
 
 
-def get_request_id(fail_if_missing: bool = True) -> str:
+def get_request_id(fail_if_missing: bool = False, default: str = "") -> str:
     try:
         return request.id
     except Exception as e:
         if fail_if_missing:
             raise InternalServerError(f"Getting request id failed. Exception=[{e}]")
-        return ""
+        return default
 
 
 def trace(namespace: str = "") -> Callable:
@@ -85,12 +98,12 @@ def trace(namespace: str = "") -> Callable:
 
 
 def start_timer() -> None:
-    request.start_time = time.time()
+    request.timer = Timer()
 
 
 def stop_timer(response: flask.Response) -> flask.Response:
     if request.path not in _IGNORED_METRIC_ROUTES:
-        latency = _calculate_latency(request.start_time)
+        latency = request.timer.stop()
         REQUEST_LATENCY.labels(request.method, _parse_endpoint()).observe(latency)
     return response
 
@@ -102,7 +115,17 @@ def record_request_data(response: flask.Response) -> flask.Response:
     return response
 
 
-def _calculate_latency(start_time: float) -> float:
+class Timer:
+    start_time: float
+
+    def __init__(self) -> None:
+        self.start_time = time.time()
+
+    def stop(self) -> float:
+        return calculate_latency(self.start_time)
+
+
+def calculate_latency(start_time: float) -> float:
     end_time = time.time()
     milliseconds = (end_time - start_time) * 1e3
     return round(milliseconds, 2)
