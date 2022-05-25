@@ -8,7 +8,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "Flask==1.1.1",
-        "PyJWT==1.7.1",
+        "PyJWT==2.4.0",
         "prometheus_client==0.7.1",
         "requests==2.22.0",
     ],
